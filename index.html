@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>โหวตธีมแต่งตัวปาร์ตี้! (Dress Code Poll)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      min-height: 100vh;
+    }
+    .theme-card {
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .theme-card:hover {
+      transform: translateY(-4px);
+    }
+    .theme-card.selected {
+      border-color: #6366f1;
+      background-color: #eef2ff;
+      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.25);
+    }
+    .neon-glow {
+      filter: drop-shadow(0 0 6px #39ff14);
+    }
+  </style>
+</head>
+<body class="text-slate-800 pb-28">
+
+  <!-- Header & Countdown -->
+  <header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white py-8 px-4 shadow-lg">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="inline-block bg-white/20 backdrop-blur-sm text-xs font-semibold px-3 py-1 rounded-full mb-3 tracking-wide">
+        🎉 DRESS CODE POLL • เลือกได้มากกว่า 1 หัวข้อ
+      </span>
+      <h1 class="text-2xl sm:text-4xl font-bold mb-2">โหวตธีมแต่งตัวรอบนี้เอาธีมไหนดี?</h1>
+      <p class="text-indigo-100 text-sm sm:text-base mb-6">ตั้งฉายาสุดปัง แล้วจิ้มธีมที่ใช่ (โหวตได้หลายข้อเลย!)</p>
+
+      <!-- Countdown Box -->
+      <div class="inline-flex flex-col items-center bg-black/25 backdrop-blur-md rounded-2xl px-6 py-3 border border-white/15">
+        <span class="text-xs text-pink-200 mb-1">⏳ ปิดรับผลโหวตวันที่ 5 ธันวาคม 2026 (23:59 น.)</span>
+        <div id="countdown" class="flex gap-3 sm:gap-5 text-center font-bold">
+          <div><span id="cd-days" class="text-xl sm:text-2xl">00</span><div class="text-[10px] font-normal opacity-80">วัน</div></div>
+          <div class="text-xl sm:text-2xl opacity-50">:</div>
+          <div><span id="cd-hours" class="text-xl sm:text-2xl">00</span><div class="text-[10px] font-normal opacity-80">ชั่วโมง</div></div>
+          <div class="text-xl sm:text-2xl opacity-50">:</div>
+          <div><span id="cd-mins" class="text-xl sm:text-2xl">00</span><div class="text-[10px] font-normal opacity-80">นาที</div></div>
+          <div class="text-xl sm:text-2xl opacity-50">:</div>
+          <div><span id="cd-secs" class="text-xl sm:text-2xl">00</span><div class="text-[10px] font-normal opacity-80">วินาที</div></div>
+        </div>
+        <div id="closed-banner" class="hidden text-amber-300 font-semibold text-sm mt-1">
+          🔒 ปิดรับผลโหวตเรียบร้อยแล้ว!
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 mt-8 space-y-8">
+
+    <!-- Step 1: Nickname Input -->
+    <section id="vote-section" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span class="bg-indigo-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-xs">1</span>
+            ตั้งฉายาก่อนโหวต
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">ใส่ชื่อเล่นหรือฉายาฮาๆ เพื่อให้เพื่อนรู้ว่าใครโหวตธีมไหน</p>
+        </div>
+        <button type="button" onclick="randomNickname()" class="self-start sm:self-auto text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+          🎲 สุ่มฉายาให้หน่อย
+        </button>
+      </div>
+
+      <input
+        type="text"
+        id="nickname-input"
+        maxlength="30"
+        placeholder="พิมพ์ฉายาของคุณที่นี่... (เช่น ตัวแม่สายแฟ, หล่อไม่พัก)"
+        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base transition"
+      />
+    </section>
+
+    <!-- Step 2: Theme Selection Grid -->
+    <section id="themes-section">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <span class="bg-indigo-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-xs">2</span>
+          เลือกธีมที่อยากแต่ง (เลือกได้หลายข้อ)
+        </h2>
+        <span id="selected-badge" class="text-xs font-semibold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
+          เลือกแล้ว 0 หัวข้อ
+        </span>
+      </div>
+
+      <div id="themes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Cards injected by JS -->
+      </div>
+    </section>
+
+    <!-- Live Leaderboard & Voters -->
+    <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            📊 ผลคะแนนเรียลไทม์
+            <span id="sync-status" class="text-[11px] font-normal px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">● ออนไลน์</span>
+          </h2>
+          <p id="total-voters-text" class="text-xs text-slate-500 mt-0.5">กำลังโหลดข้อมูลผู้โหวต...</p>
+        </div>
+        <button type="button" onclick="copySummary()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5">
+          📋 คัดลอกสรุปผลไปแชร์ในแชท
+        </button>
+      </div>
+
+      <!-- Progress Bars -->
+      <div id="results-list" class="space-y-4">
+        <div class="text-center text-sm text-slate-400 py-6">กำลังดึงคะแนนจากฐานข้อมูล...</div>
+      </div>
+
+      <!-- Voters Directory -->
+      <div class="mt-8 pt-6 border-t border-slate-100">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">🕵️‍♂️ ทำเนียบผู้ร่วมโหวต (คลิกชื่อธีมเพื่อกรองดูรายคน)</h3>
+        <div id="filter-pills" class="flex flex-wrap gap-1.5 mb-4"></div>
+        <div id="voters-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Sticky Bottom Action Bar -->
+  <div id="bottom-bar" class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t border-slate-200 p-3 shadow-lg z-40">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+      <div class="text-sm">
+        <span class="text-slate-500">เลือกไว้:</span>
+        <strong id="bottom-count" class="text-indigo-600 text-base">0</strong> <span class="text-slate-500">ธีม</span>
+      </div>
+      <button
+        id="submit-btn"
+        type="button"
+        onclick="submitVote()"
+        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition flex items-center gap-2"
+      >
+        <span>🚀 ส่งผลโหวตเลย!</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 right-5 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl transform transition-all duration-300 translate-y-[-150%] opacity-0 z-50">
+    ข้อความแจ้งเตือน
+  </div>
+
+  <script>
+    // ==========================================
+    // ตั้งค่าฐานข้อมูล Firebase Realtime Database
+    // ==========================================
+    const DB_URL = "https://ninnnnnnnnng-default-rtdb.asia-southeast1.firebasedatabase.app/votes.json";
+    const DEADLINE = new Date("2026-12-05T23:59:59+07:00").getTime();
+
+    const THEMES = [
+      {
+        id: "olympic",
+        title: "1. โอลิมปิก",
+        desc: "ชุดกีฬา นักวิ่ง ทีมชาติ เหรียญทองต้องเข้า!",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-sky-50 p-2">
+          <circle cx="34" cy="34" r="13" fill="none" stroke="#0081C8" stroke-width="3.5"/>
+          <circle cx="60" cy="34" r="13" fill="none" stroke="#111111" stroke-width="3.5"/>
+          <circle cx="86" cy="34" r="13" fill="none" stroke="#EE334E" stroke-width="3.5"/>
+          <circle cx="47" cy="47" r="13" fill="none" stroke="#FCB131" stroke-width="3.5"/>
+          <circle cx="73" cy="47" r="13" fill="none" stroke="#00A651" stroke-width="3.5"/>
+        </svg>`
+      },
+      {
+        id: "plaid",
+        title: "2. ลายสก๊อต",
+        desc: "เสื้อเชิ้ตตาราง ผ้าขาวม้า หรือกระโปรงนักเรียนนอก",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-red-500 overflow-hidden">
+          <rect width="120" height="80" fill="#dc2626"/>
+          <rect x="0" y="15" width="120" height="12" fill="#1e293b" fill-opacity="0.45"/>
+          <rect x="0" y="50" width="120" height="12" fill="#1e293b" fill-opacity="0.45"/>
+          <rect x="20" y="0" width="14" height="80" fill="#1e293b" fill-opacity="0.45"/>
+          <rect x="60" y="0" width="14" height="80" fill="#1e293b" fill-opacity="0.45"/>
+          <rect x="95" y="0" width="14" height="80" fill="#1e293b" fill-opacity="0.45"/>
+          <line x1="0" y1="36" x2="120" y2="36" stroke="#facc15" stroke-width="2"/>
+          <line x1="45" y1="0" x2="45" y2="80" stroke="#facc15" stroke-width="2"/>
+        </svg>`
+      },
+      {
+        id: "couple",
+        title: "3. เสื้อคู่",
+        desc: "จับคู่แต่งเหมือนกัน (คู่รัก คู่เพื่อนซี้ หรือคู่แฝด)",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-rose-50 p-2">
+          <path d="M22 25 L32 18 L48 18 L58 25 L52 34 L46 30 L46 62 L34 62 L34 30 L28 34 Z" fill="#fb7185"/>
+          <path d="M62 25 L72 18 L88 18 L98 25 L92 34 L86 30 L86 62 L74 62 L74 30 L68 34 Z" fill="#38bdf8"/>
+          <path d="M60 15 C58 11, 52 11, 52 16 C52 21, 60 26, 60 26 C60 26, 68 21, 68 16 C68 11, 62 11, 60 15 Z" fill="#e11d48"/>
+        </svg>`
+      },
+      {
+        id: "jeans",
+        title: "4. ยีนส์",
+        desc: "Denim on Denim แจ็คเก็ตยีนส์ กางเกงยีนส์สุดเท่",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-blue-100 p-2">
+          <path d="M40 12 L80 12 L85 68 L65 68 L60 36 L55 68 L35 68 Z" fill="#2563eb"/>
+          <path d="M40 12 L80 12 L85 68 L65 68 L60 36 L55 68 L35 68 Z" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <line x1="60" y1="12" x2="60" y2="35" stroke="#f59e0b" stroke-width="1.5"/>
+          <rect x="44" y="20" width="9" height="9" rx="1" fill="#1d4ed8" stroke="#f59e0b" stroke-width="1"/>
+          <rect x="67" y="20" width="9" height="9" rx="1" fill="#1d4ed8" stroke="#f59e0b" stroke-width="1"/>
+        </svg>`
+      },
+      {
+        id: "mixnotmatch",
+        title: "5. มิกซ์แต่ไม่แมท",
+        desc: "ลายชนลาย สีตัดสี หลับตาหยิบจากตู้แล้วออกจากบ้าน",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-amber-100 p-2">
+          <circle cx="30" cy="25" r="14" fill="#ec4899"/>
+          <polygon points="75,10 95,42 55,42" fill="#10b981"/>
+          <rect x="25" y="46" width="32" height="22" rx="4" fill="#8b5cf6" transform="rotate(-8 25 46)"/>
+          <path d="M70 50 Q85 38 100 55 T80 70" fill="none" stroke="#f97316" stroke-width="5" stroke-linecap="round"/>
+        </svg>`
+      },
+      {
+        id: "neon",
+        title: "6. นีออน",
+        desc: "สะท้อนแสงแสบตา เขียวสะท้อนแสง ชมพูบานเย็น",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-slate-900 p-2">
+          <polygon points="60,8 42,44 58,44 50,72 78,34 60,34" fill="#39ff14" class="neon-glow"/>
+          <circle cx="26" cy="24" r="5" fill="#ff00ff"/>
+          <circle cx="94" cy="56" r="6" fill="#00ffff"/>
+        </svg>`
+      },
+      {
+        id: "notahuman",
+        title: "7. อะไรก็ได้ที่ไม่ใช่คน",
+        desc: "สัตว์ประหลาด ต้นไม้ ตู้เย็น ผี เอเลี่ยน มาได้หมด!",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-emerald-100 p-2">
+          <ellipse cx="60" cy="46" rx="22" ry="24" fill="#22c55e"/>
+          <line x1="48" y1="24" x2="40" y2="12" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+          <line x1="72" y1="24" x2="80" y2="12" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="40" cy="11" r="4" fill="#eab308"/>
+          <circle cx="80" cy="11" r="4" fill="#eab308"/>
+          <circle cx="52" cy="42" r="5" fill="#111"/>
+          <circle cx="68" cy="42" r="5" fill="#111"/>
+          <circle cx="53" cy="40" r="1.5" fill="#fff"/>
+          <circle cx="69" cy="40" r="1.5" fill="#fff"/>
+          <path d="M52 55 Q60 62 68 55" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>`
+      },
+      {
+        id: "celebrity",
+        title: "8. คนดัง",
+        desc: "ดารา นักร้อง ไอดอล ตัวละครดังระดับโลก",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-amber-50 p-2">
+          <polygon points="60,8 66,26 85,26 70,38 75,56 60,45 45,56 50,38 35,26 54,26" fill="#f59e0b"/>
+          <rect x="34" y="54" width="22" height="10" rx="3" fill="#111"/>
+          <rect x="64" y="54" width="22" height="10" rx="3" fill="#111"/>
+          <line x1="56" y1="57" x2="64" y2="57" stroke="#111" stroke-width="2.5"/>
+        </svg>`
+      },
+      {
+        id: "elder",
+        title: "9. ญาติผู้ใหญ่",
+        desc: "ผ้าไหม ผ้าลูกไม้ เสื้อคอกระเช้า ทองหยองต้องมา",
+        svg: `<svg viewBox="0 0 120 80" class="w-full h-24 rounded-xl bg-purple-100 p-2">
+          <circle cx="60" cy="20" r="9" fill="#cbd5e1"/>
+          <circle cx="60" cy="42" r="15" fill="#fed7aa"/>
+          <path d="M45 38 Q60 28 75 38" fill="#e2e8f0"/>
+          <circle cx="54" cy="41" r="4" fill="none" stroke="#475569" stroke-width="1.5"/>
+          <circle cx="66" cy="41" r="4" fill="none" stroke="#475569" stroke-width="1.5"/>
+          <line x1="58" y1="41" x2="62" y2="41" stroke="#475569" stroke-width="1.5"/>
+          <path d="M36 72 C36 58, 84 58, 84 72 Z" fill="#9333ea"/>
+          <path d="M48 59 Q60 66 72 59" fill="none" stroke="#f8fafc" stroke-width="3" stroke-dasharray="3,2"/>
+        </svg>`
+      }
+    ];
+
+    const FUN_NICKNAMES = [
+      "ตัวแม่แคร์ที่ไหน", "หล่อทะลุแมสก์", "สายตี้ไม่มีแผ่ว", "เน้นกินไม่เน้นเต้น",
+      "ประธานบริษัทปลอมตัว", "ดาวเด่นประจำซอย", "สวยแบบตะโกน", "คนคูลๆ 2026",
+      "สายแฟตัวจริง", "มาช้าแต่มานะ", "ตัวตึงประจำกลุ่ม", "ผู้บ่าวไทบ้านอินเตอร์"
+    ];
+
+    let selectedThemes = new Set();
+    let allVotes = [];
+    let activeFilter = "all";
+    let isPollClosed = false;
+
+    // Render Theme Cards
+    function renderThemes() {
+      const grid = document.getElementById("themes-grid");
+      grid.innerHTML = THEMES.map(theme => {
+        const isSelected = selectedThemes.has(theme.id);
+        return `
+          <div
+            onclick="toggleTheme('${theme.id}')"
+            class="theme-card cursor-pointer bg-white rounded-2xl p-4 border-2 ${isSelected ? 'selected border-indigo-500' : 'border-slate-100 hover:border-indigo-200'} relative select-none"
+          >
+            <div class="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}">
+              ${isSelected ? '✓' : '+'}
+            </div>
+            <div class="mb-3">${theme.svg}</div>
+            <h3 class="font-bold text-slate-800 text-base">${theme.title}</h3>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">${theme.desc}</p>
+          </div>
+        `;
+      }).join("");
+
+      document.getElementById("selected-badge").textContent = `เลือกแล้ว ${selectedThemes.size} หัวข้อ`;
+      document.getElementById("bottom-count").textContent = selectedThemes.size;
+    }
+
+    function toggleTheme(id) {
+      if (isPollClosed) {
+        showToast("🔒 ปิดรับผลโหวตแล้วครับ");
+        return;
+      }
+      if (selectedThemes.has(id)) {
+        selectedThemes.delete(id);
+      } else {
+        selectedThemes.add(id);
+      }
+      renderThemes();
+    }
+
+    function randomNickname() {
+      const pick = FUN_NICKNAMES[Math.floor(Math.random() * FUN_NICKNAMES.length)];
+      document.getElementById("nickname-input").value = pick;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.remove("translate-y-[-150%]", "opacity-0");
+      setTimeout(() => {
+        toast.classList.add("translate-y-[-150%]", "opacity-0");
+      }, 3000);
+    }
+
+    // Fetch Votes from Firebase
+    async function fetchVotes() {
+      try {
+        const res = await fetch(DB_URL);
+        if (!res.ok) throw new Error("Network error");
+        const data = await res.json();
+        allVotes = data ? Object.values(data) : [];
+        document.getElementById("sync-status").textContent = "● ออนไลน์ (อัปเดตล่าสุด)";
+        document.getElementById("sync-status").className = "text-[11px] font-normal px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700";
+        renderResults();
+      } catch (err) {
+        document.getElementById("sync-status").textContent = "● ขัดข้องชั่วคราว";
+        document.getElementById("sync-status").className = "text-[11px] font-normal px-2 py-0.5 rounded-full bg-amber-100 text-amber-700";
+      }
+    }
+
+    // Submit Vote to Firebase
+    async function submitVote() {
+      if (isPollClosed) return;
+
+      const nickname = document.getElementById("nickname-input").value.trim();
+      if (!nickname) {
+        showToast("⚠️ กรุณาตั้งฉายาก่อนกดโหวตนะครับ!");
+        document.getElementById("nickname-input").focus();
+        return;
+      }
+      if (selectedThemes.size === 0) {
+        showToast("⚠️ กรุณาเลือกอย่างน้อย 1 ธีมครับ!");
+        return;
+      }
+
+      const btn = document.getElementById("submit-btn");
+      btn.disabled = true;
+      btn.innerHTML = `<span>⏳ กำลังบันทึก...</span>`;
+
+      const payload = {
+        nickname: nickname,
+        choices: Array.from(selectedThemes),
+        timestamp: Date.now()
+      };
+
+      try {
+        const res = await fetch(DB_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error("Failed to save");
+
+        confetti({ particleCount: 90, spread: 70, origin: { y: 0.7 } });
+        showToast(`🎉 บันทึกโหวตของ "${nickname}" เรียบร้อยแล้ว!`);
+
+        // Reset form
+        selectedThemes.clear();
+        document.getElementById("nickname-input").value = "";
+        renderThemes();
+        await fetchVotes();
+      } catch (err) {
+        showToast("❌ บันทึกไม่สำเร็จ กรุณาตรวจสอบการตั้งค่า Rules ใน Firebase");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>🚀 ส่งผลโหวตเลย!</span>`;
+      }
+    }
+
+    // Render Leaderboard & Voters
+    function renderResults() {
+      const totalVoters = allVotes.length;
+      document.getElementById("total-voters-text").textContent = `มีผู้ร่วมโหวตทั้งหมด ${totalVoters} คน`;
+
+      // Count per theme
+      const counts = {};
+      THEMES.forEach(t => counts[t.id] = 0);
+      allVotes.forEach(v => {
+        if (Array.isArray(v.choices)) {
+          v.choices.forEach(c => {
+            if (counts[c] !== undefined) counts[c]++;
+          });
+        }
+      });
+
+      // Sort themes by score
+      const sorted = [...THEMES].sort((a, b) => counts[b.id] - counts[a.id]);
+      const maxScore = Math.max(...Object.values(counts), 1);
+
+      const resultsList = document.getElementById("results-list");
+      resultsList.innerHTML = sorted.map((theme, idx) => {
+        const score = counts[theme.id];
+        const pct = totalVoters > 0 ? Math.round((score / totalVoters) * 100) : 0;
+        const barWidth = totalVoters > 0 ? Math.round((score / maxScore) * 100) : 0;
+        const medal = idx === 0 && score > 0 ? "🥇 " : idx === 1 && score > 0 ? "🥈 " : idx === 2 && score > 0 ? "🥉 " : "";
+
+        return `
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-semibold text-slate-700">${medal}${theme.title}</span>
+              <span class="font-bold text-indigo-600">${score} คะแนน <span class="text-xs font-normal text-slate-400">(${pct}%)</span></span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+              <div class="bg-gradient-to-r from-indigo-500 to-pink-500 h-3 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      renderVotersDirectory();
+    }
+
+    function setFilter(filterId) {
+      activeFilter = filterId;
+      renderVotersDirectory();
+    }
+
+    function renderVotersDirectory() {
+      const pillsEl = document.getElementById("filter-pills");
+      const allBtnClass = activeFilter === "all" ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200";
+      let pillsHtml = `<button onclick="setFilter('all')" class="text-xs px-3 py-1 rounded-full font-medium transition ${allBtnClass}">ทั้งหมด (${allVotes.length})</button>`;
+
+      THEMES.forEach(t => {
+        const cls = activeFilter === t.id ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200";
+        pillsHtml += `<button onclick="setFilter('${t.id}')" class="text-xs px-2.5 py-1 rounded-full font-medium transition ${cls}">${t.title.split('. ')[1]}</button>`;
+      });
+      pillsEl.innerHTML = pillsHtml;
+
+      const filtered = activeFilter === "all"
+        ? [...allVotes].reverse()
+        : [...allVotes].reverse().filter(v => Array.isArray(v.choices) && v.choices.includes(activeFilter));
+
+      const votersEl = document.getElementById("voters-list");
+      if (filtered.length === 0) {
+        votersEl.innerHTML = `<div class="col-span-full text-center text-xs text-slate-400 py-4">ยังไม่มีรายชื่อในหมวดนี้</div>`;
+        return;
+      }
+
+      votersEl.innerHTML = filtered.map(v => {
+        const labels = (v.choices || []).map(cid => {
+          const found = THEMES.find(t => t.id === cid);
+          return found ? found.title.split('. ')[1] : cid;
+        });
+        return `
+          <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <div class="font-bold text-sm text-slate-800">🎭 ${escapeHtml(v.nickname)}</div>
+            <div class="flex flex-wrap gap-1 mt-1.5">
+              ${labels.map(l => `<span class="text-[11px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-md">${l}</span>`).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    function copySummary() {
+      const counts = {};
+      THEMES.forEach(t => counts[t.id] = 0);
+      allVotes.forEach(v => (v.choices || []).forEach(c => { if (counts[c] !== undefined) counts[c]++; }));
+      const sorted = [...THEMES].sort((a, b) => counts[b.id] - counts[a.id]);
+
+      let text = `📊 สรุปผลโหวตธีมแต่งตัว (ผู้โหวต ${allVotes.length} คน)\n`;
+      sorted.forEach((t, i) => {
+        text += `${i + 1}. ${t.title.split('. ')[1]} : ${counts[t.id]} คะแนน\n`;
+      });
+      text += `\n👉 ร่วมโหวตได้ที่: ${window.location.href}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("📋 คัดลอกสรุปผลลงคลิปบอร์ดแล้ว!");
+      });
+    }
+
+    // Countdown Timer
+    function updateCountdown() {
+      const now = Date.now();
+      const diff = DEADLINE - now;
+
+      if (diff <= 0) {
+        isPollClosed = true;
+        document.getElementById("countdown").classList.add("hidden");
+        document.getElementById("closed-banner").classList.remove("hidden");
+        document.getElementById("bottom-bar").classList.add("hidden");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / 1000 / 60) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      document.getElementById("cd-days").textContent = String(days).padStart(2, "0");
+      document.getElementById("cd-hours").textContent = String(hours).padStart(2, "0");
+      document.getElementById("cd-mins").textContent = String(mins).padStart(2, "0");
+      document.getElementById("cd-secs").textContent = String(secs).padStart(2, "0");
+    }
+
+    // Init
+    renderThemes();
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    fetchVotes();
+    setInterval(fetchVotes, 5000); // Auto-refresh every 5 seconds
+  </script>
+</body>
+</html>
